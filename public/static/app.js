@@ -28,7 +28,7 @@
   }
 
   function createId() {
-    if (crypto.randomUUID) return crypto.randomUUID();
+    if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
       const random = Math.floor(Math.random() * 16);
       return (character === "x" ? random : (random & 0x3) | 0x8).toString(16);
@@ -38,7 +38,10 @@
   async function fetchJson(url, options) {
     let response;
     try {
-      response = await fetch(url, options);
+      const headers = new Headers(options?.headers || {});
+      const staffCode = sessionStorage.getItem("namma-phc-staff-code");
+      if (staffCode) headers.set("X-Staff-Access-Code", staffCode);
+      response = await fetch(url, { ...options, headers });
     } catch (error) {
       setNetworkStatus(false);
       throw error;
@@ -473,7 +476,7 @@
       const query = new URLSearchParams({ phc_id: PHC_SELECT.value });
       renderAdmin(await fetchJson(`/api/dashboard?${query}`));
     } catch (error) {
-      setMessage("staff-message", error.message, true);
+      setMessage("admin-message", error.message, true);
     }
   }
 
@@ -489,6 +492,28 @@
     } finally {
       $("call-next").disabled = false;
     }
+  });
+
+  function saveStaffAccessCode(inputId, messageId) {
+    const code = $(inputId).value.trim();
+    if (code) {
+      sessionStorage.setItem("namma-phc-staff-code", code);
+      setMessage(messageId, "Access code saved for this browser session.");
+    } else {
+      sessionStorage.removeItem("namma-phc-staff-code");
+      setMessage(messageId, "Access code cleared.");
+    }
+    refreshStaff();
+    refreshAdmin();
+  }
+
+  $("staff-access-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    saveStaffAccessCode("staff-access-code", "staff-message");
+  });
+  $("admin-access-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    saveStaffAccessCode("admin-access-code", "admin-message");
   });
 
   document.querySelectorAll(".tab").forEach((tab) => {

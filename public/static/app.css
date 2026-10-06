@@ -13,7 +13,7 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.45; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 .site-header { padding: 20px 16px; color: #fff; background: var(--green); }
@@ -91,6 +91,9 @@ label { display: block; margin: 12px 0 6px; font-size: .9rem; font-weight: 700; 
 .summary-box.urgent { border: 1px solid #d88d82; background: #fff1ef; }
 .emergency-note { margin: 16px 0 0; padding: 12px; border-left: 4px solid #bb5144; background: #fff4f1; color: #633128; font-size: .85rem; }
 .staff-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+.staff-access-form { margin: 14px 0; padding: 12px; border-radius: 10px; background: #f3f7f5; }
+.staff-access-form label { margin-top: 0; }
+.staff-access-controls { display: grid; gap: 8px; }
 .admin-metrics { grid-template-columns: repeat(2, 1fr); }
 .metric-tile { display: flex; min-width: 0; flex-direction: column; gap: 5px; padding: 12px; border-radius: 10px; background: var(--mint); }
 .metric-tile span { color: var(--muted); font-size: .76rem; }
@@ -118,6 +121,7 @@ label { display: block; margin: 12px 0 6px; font-size: .9rem; font-weight: 700; 
   .phc-bar { grid-template-columns: auto minmax(260px, 1fr); align-items: center; }
   .patient-layout { grid-template-columns: 1fr 1fr; align-items: start; }
   .staff-metrics { gap: 12px; }
+  .staff-access-controls { grid-template-columns: minmax(180px, 1fr) auto; }
   .admin-metrics { grid-template-columns: repeat(4, 1fr); }
   .admin-grid { grid-template-columns: .8fr 1.2fr; }
 }

@@ -21,7 +21,7 @@ if (!(Test-Path .env)) { Copy-Item .env.example .env }
 
 Open <http://127.0.0.1:5000>. After initial setup, the app starts with the single command `.\venv\Scripts\python.exe app.py`.
 
-Groq is optional. Set `GROQ_API_KEY` in `.env` on the Flask server to enable structured AI summaries; the key is never sent to the browser. Without it, the app returns a local intake summary and retains the red-flag safety check. Set `GROQ_MODEL` to choose a Groq-supported model and `DOCTORS_AVAILABLE` to configure the demo PHC staffing count.
+Groq is optional. Set `GROQ_API_KEY` in `.env` on the Flask server to enable structured AI summaries; the key is never sent to the browser. Without it, the app returns a local intake summary and retains the red-flag safety check. Set `GROQ_MODEL` to choose a Groq-supported model and `DOCTORS_AVAILABLE` to configure the demo PHC staffing count. Local development uses SQLite unless `DATABASE_URL` is configured.
 
 ## Offline demo
 
@@ -40,7 +40,36 @@ On first run, deterministic, privacy-safe demo data is created at:
 - `dataset/phc_queue_history.csv` — 240 queue observations with the prediction inputs.
 - `dataset/patient_intake.csv` — 60 synthetic intake rows.
 
-Both files are labeled **SYNTHETIC DEMO DATA** in the UI/data. SQLite is initialized at `instance/namma_phc.sqlite3` and can be overridden with `DATABASE_PATH`. Demo data is not real patient information.
+Both files are labeled **SYNTHETIC DEMO DATA** in the UI/data. SQLite is initialized at `instance/namma_phc.sqlite3` for local development and can be overridden with `DATABASE_PATH`. Vercel must use persistent Postgres via `DATABASE_URL`; its function filesystem is not the production database. Demo data is not real patient information.
+
+## Deploy to Vercel with Supabase
+
+Vercel runs the Flask app as a serverless Python Function. The patient-facing app shell and assets are in `public/` for CDN serving. SQLite remains the local-development default; Vercel requires a persistent Supabase Postgres database.
+
+1. Create a Supabase project and open **Connect** → **Transaction pooler**. Copy its PostgreSQL connection URI; this pooler mode is intended for short-lived/serverless functions.
+2. Import this project’s Git repository in Vercel (or link it with the CLI). Keep the project root at the repository root and use the default Python build settings.
+3. Add these Vercel **Production** environment variables. Do not commit their values:
+   - `DATABASE_URL` — the Supabase Transaction pooler URI. The app uses TLS and disables prepared statements for transaction-pooler compatibility.
+   - `STAFF_ACCESS_CODE` — a strong private code for Staff/Admin dashboards and patient Visit Pass API lookups. Staff enters it in the Staff or Admin tab; it is held in browser session storage.
+   - `GROQ_API_KEY` — optional; omit to use local intake summaries.
+   - `DOCTORS_AVAILABLE` — optional, defaults to `2`.
+4. Deploy and check `https://<your-deployment>/api/health`. It should return `{"ok":true,...,"database":"connected"}`. The app creates its tables in Supabase on startup.
+
+CLI alternative from the repository directory (commands prompt for secret values):
+
+```powershell
+npm install --global vercel
+vercel login
+vercel link
+vercel env add DATABASE_URL production
+vercel env add STAFF_ACCESS_CODE production
+vercel env add GROQ_API_KEY production
+vercel --prod
+```
+
+Skip the Groq environment command if no Groq key is available. `vercel.json` configures a 60-second function duration and prevents caching the service-worker script. Keep the Supabase URL and access code private. Preview deployments need their own environment values configured in Vercel.
+
+The endpoints that expose staff dashboards, staff queue actions, and server-side Visit Pass lookups require `STAFF_ACCESS_CODE` on Vercel. The local demo remains open when the variable is not set. This code gate is suitable only for a controlled prototype; before real patient use, implement proper staff accounts/roles, rate limiting, audit controls, and applicable privacy and clinical review.
 
 ## REST API
 
@@ -54,4 +83,4 @@ Both files are labeled **SYNTHETIC DEMO DATA** in the UI/data. SQLite is initial
 - `POST /api/staff/call-next`
 - `GET /api/health`
 
-The prototype has no staff authentication and should not be deployed with real patient data without appropriate security, privacy, clinical-safety, and operational review.
+The shared access code is a basic demo gate, not full staff authentication. Do not deploy with real patient data without appropriate user accounts/roles, security, privacy, clinical-safety, and operational review.

@@ -123,6 +123,13 @@
           </div>
           <button id="staff-refresh" class="button button-outline button-small">Refresh</button>
         </div>
+        <form id="staff-access-form" class="staff-access-form">
+          <label for="staff-access-code">Staff access code</label>
+          <div class="staff-access-controls">
+            <input class="control" id="staff-access-code" type="password" autocomplete="current-password" placeholder="Enter the code configured by the PHC admin">
+            <button class="button button-outline" type="submit">Unlock staff view</button>
+          </div>
+        </form>
         <div class="staff-metrics">
           <div class="metric-tile"><span>Current token</span><strong id="staff-current">—</strong></div>
           <div class="metric-tile"><span>Waiting patients</span><strong id="staff-waiting">—</strong></div>
@@ -147,6 +154,14 @@
           <div><p class="eyebrow">PHC OVERVIEW</p><h2>Today’s operations</h2></div>
           <button id="admin-refresh" class="button button-outline button-small">Refresh</button>
         </div>
+        <form id="admin-access-form" class="staff-access-form">
+          <label for="admin-access-code">Staff/Admin access code</label>
+          <div class="staff-access-controls">
+            <input class="control" id="admin-access-code" type="password" autocomplete="current-password" placeholder="Enter the code configured by the PHC admin">
+            <button class="button button-outline" type="submit">Unlock admin view</button>
+          </div>
+        </form>
+        <p id="admin-message" class="form-message" role="status"></p>
         <div class="staff-metrics admin-metrics">
           <div class="metric-tile"><span>Today’s patients</span><strong id="admin-patients">—</strong></div>
           <div class="metric-tile"><span>Average waiting</span><strong id="admin-wait">—</strong></div>

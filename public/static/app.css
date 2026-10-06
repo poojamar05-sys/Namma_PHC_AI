@@ -49,7 +49,9 @@ label { display: block; margin: 12px 0 6px; font-size: .9rem; font-weight: 700; 
 .section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .section-heading .eyebrow { color: var(--green); }
 .queue-card { padding-bottom: 16px; }
+.queue-token-label { display: block; margin-top: 14px; }
 .queue-number { margin: 16px 0 0; color: var(--green); font-size: 3.5rem; font-weight: 850; line-height: 1; }
+.queue-count { margin: 8px 0 0; font-size: 1.08rem; font-weight: 850; }
 .muted { margin-bottom: 10px; color: var(--muted); }
 .small { font-size: .8rem; }
 .wait-panel { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 17px 0 12px; padding: 12px; border-radius: 11px; background: var(--mint); }
@@ -73,15 +75,39 @@ label { display: block; margin: 12px 0 6px; font-size: .9rem; font-weight: 700; 
 .form-message { min-height: 18px; margin: 7px 0 0; color: var(--muted); font-size: .85rem; }
 .form-message.error { color: var(--red); }
 .pass-card { min-height: 130px; }
+.pass-card #pass-sync { max-width: 118px; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 .empty-state { padding: 14px; border: 1px dashed var(--border); border-radius: 10px; color: var(--muted); font-size: .9rem; }
 .pass-ticket { margin-top: 12px; padding: 15px; border: 2px solid var(--green); border-radius: 12px; background: #f6fbf8; }
+.pass-ticket-featured { padding: 18px; border-width: 3px; box-shadow: 0 4px 15px #193d3218; }
+.pass-confirmation { display: flex; min-height: 44px; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; font-size: .95rem; font-weight: 900; overflow-wrap: anywhere; }
+.pass-confirmation.confirmed { background: #def3e7; color: #155c36; }
+.pass-confirmation.pending { border: 1px solid #e5bd59; background: #fff4d4; color: #694900; }
+.pass-confirmation-icon { font-size: 1.1rem; }
+.pass-hero-heading { margin: 14px 0 10px; font-size: 1.15rem; line-height: 1.35; }
+.token-answer, .arrival-answer { display: flex; flex-direction: column; gap: 5px; padding: 14px; border-radius: 11px; }
+.token-answer { background: var(--mint); }
+.arrival-answer { margin-top: 10px; border: 1px solid var(--border); background: #fff; }
+.answer-label { color: var(--muted); font-size: .84rem; font-weight: 850; line-height: 1.35; }
+.pass-token { display: block; font-size: clamp(2.4rem, 12vw, 3.25rem); overflow-wrap: anywhere; }
+.answer-detail { color: var(--muted); font-size: .95rem; overflow-wrap: anywhere; }
+.arrival-time-answer { color: var(--green-dark); font-size: clamp(1.42rem, 7vw, 2rem); line-height: 1.25; overflow-wrap: anywhere; }
+.wait-instruction { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding: 14px; border-left: 5px solid var(--green); border-radius: 8px; background: #eaf5f1; font-size: 1rem; }
+.wait-instruction strong { font-size: 1.04rem; }
+.wait-instruction-en { color: var(--muted); font-size: .9rem; }
+.offline-pass-note { display: flex; flex-direction: column; gap: 5px; margin: 10px 0 0; padding: 12px; border-radius: 9px; background: #fff4d4; color: #694900; font-size: .92rem; }
+.offline-pass-note .wait-instruction-en { color: #694900; }
+.pass-sync-error { margin: 9px 0 0; color: var(--red); font-size: .84rem; overflow-wrap: anywhere; }
+.pass-ticket-older { border-width: 1px; background: #fff; }
+.pass-ticket-older .pass-confirmation { min-height: 38px; font-size: .8rem; }
 .pass-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.pass-token { color: var(--green); font-size: 2.15rem; font-weight: 900; line-height: 1.1; }
+.pass-ticket-older .pass-token { color: var(--green); font-size: 2.15rem; font-weight: 900; line-height: 1.1; }
 .pass-name { margin: 5px 0; font-size: 1.05rem; font-weight: 800; overflow-wrap: anywhere; }
 .pass-detail { margin: 3px 0; color: var(--muted); font-size: .87rem; }
 .pass-arrival { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 750; }
 .pass-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .pass-actions .button { min-height: 40px; font-size: .82rem; }
+.pass-actions-prominent { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: 14px; }
+.pass-actions-prominent .button { width: 100%; min-height: 54px; padding: 11px 12px; font-size: .98rem; line-height: 1.3; }
 .symptom-input { min-height: 106px; resize: vertical; }
 .disclaimer { margin-top: 10px; color: #4c4179; font-size: .82rem; font-weight: 800; }
 .summary-box { margin-top: 12px; padding: 14px; border-radius: 10px; background: #f1f3fb; }
@@ -133,4 +159,7 @@ label { display: block; margin: 12px 0 6px; font-size: .9rem; font-weight: 700; 
   .tagline { max-width: 240px; font-size: .86rem; }
   .staff-metrics { grid-template-columns: 1fr; }
   .patient-row { flex-direction: column; }
+  .queue-card .section-heading { display: grid; }
+  .queue-card .section-heading .button { width: 100%; }
+  .pass-ticket-featured { padding: 13px; }
 }

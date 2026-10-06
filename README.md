@@ -44,7 +44,7 @@ Both files are labeled **SYNTHETIC DEMO DATA** in the UI/data. SQLite is initial
 
 ## Deploy to Vercel with Supabase
 
-Vercel runs the Flask app as a serverless Python Function. The patient-facing app shell and assets are in `public/` for CDN serving. SQLite remains the local-development default; Vercel requires a persistent Supabase Postgres database.
+Vercel runs the Flask app as a serverless Python Function. The patient-facing app shell and assets are in `public/` for CDN serving. SQLite remains the local-development default; Vercel requires a persistent Supabase Postgres database for shared server-side queue records. If the database is missing or unavailable, the patient can still create a clearly marked local `OFF-*` Visit Pass stored on their phone, but it is not in the PHC queue until sync succeeds.
 
 1. Create a Supabase project and open **Connect** → **Transaction pooler**. Copy its PostgreSQL connection URI; this pooler mode is intended for short-lived/serverless functions.
 2. Import this project’s Git repository in Vercel (or link it with the CLI). Keep the project root at the repository root and use the default Python build settings.
@@ -53,7 +53,7 @@ Vercel runs the Flask app as a serverless Python Function. The patient-facing ap
    - `STAFF_ACCESS_CODE` — a strong private code for Staff/Admin dashboards and patient Visit Pass API lookups. Staff enters it in the Staff or Admin tab; it is held in browser session storage.
    - `GROQ_API_KEY` — optional; omit to use local intake summaries.
    - `DOCTORS_AVAILABLE` — optional, defaults to `2`.
-4. Deploy and check `https://<your-deployment>/api/health`. It should return `{"ok":true,...,"database":"connected"}`. The app creates its tables in Supabase on startup.
+4. Deploy and check `https://<your-deployment>/api/health`. It should return `{"ok":true,...,"database":"connected"}`. The app creates its tables in Supabase on startup. If it instead returns a `DATABASE_URL` error, add or correct that environment variable and redeploy; local/offline passes will remain pending and retry sync.
 
 CLI alternative from the repository directory (commands prompt for secret values):
 

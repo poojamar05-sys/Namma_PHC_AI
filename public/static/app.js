@@ -46,9 +46,14 @@
       setNetworkStatus(false);
       throw error;
     }
-    setNetworkStatus(true);
+    if (response.status >= 500) setServerUnavailable();
+    else if (response.ok) setNetworkStatus(true);
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.error || `Request failed (${response.status}).`);
+    if (!response.ok) {
+      const error = new Error(body.error || `Request failed (${response.status}).`);
+      error.status = response.status;
+      throw error;
+    }
     return body;
   }
 
@@ -65,6 +70,14 @@
     badge.textContent = online ? "● Online" : "● Offline";
     badge.classList.toggle("online", online);
     badge.classList.toggle("offline", !online);
+    updatePendingStatus();
+  }
+
+  function setServerUnavailable() {
+    const badge = $("connection-status");
+    badge.textContent = "● Server unavailable";
+    badge.classList.remove("online");
+    badge.classList.add("offline");
     updatePendingStatus();
   }
 
@@ -105,70 +118,183 @@
     });
   }
 
+  function hearPass(pass) {
+    if (!("speechSynthesis" in window)) {
+      setMessage("booking-message", "இந்த சாதனத்தில் குரல் வசதி இல்லை · Voice playback is unavailable on this device.", true);
+      return;
+    }
+    const arrival = pass.recommended_arrival_window || "Please ask PHC staff for your arrival time";
+    const waiting = pass.estimated_wait_minutes == null
+      ? ""
+      : `Estimated wait is ${pass.estimated_wait_minutes} minutes.`;
+    const tamil = pass.recommended_arrival_window
+      ? `உங்கள் டோக்கன் ${pass.token}. ${arrival} மணியளவில் PHC-க்கு வாருங்கள். இப்போது PHC-ல் காத்திருக்க வேண்டிய அவசியமில்லை.`
+      : `உங்கள் டோக்கன் ${pass.token}. வருகை நேரத்தை PHC பணியாளரிடம் உறுதிப்படுத்தவும்.`;
+    const english = pass.recommended_arrival_window
+      ? `Your token is ${pass.token}. Please visit ${pass.phc_name || "the PHC"} around ${arrival}. You do not need to wait at the PHC right now. ${waiting}`
+      : `Your token is ${pass.token}. Please confirm your arrival time with PHC staff.`;
+    window.speechSynthesis.cancel();
+    [tamil, english].forEach((text, index) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = index === 0 ? "ta-IN" : "en-IN";
+      utterance.rate = 0.88;
+      window.speechSynthesis.speak(utterance);
+    });
+  }
+
+  function renderPassTicket(pass, latest = false) {
+    const ticket = element("article", `pass-ticket${latest ? " pass-ticket-featured" : " pass-ticket-older"}`);
+    ticket.dataset.passId = pass.visit_pass_id;
+    const confirmation = element("div", `pass-confirmation ${pass.synced ? "confirmed" : "pending"}`);
+    confirmation.append(
+      element("span", "pass-confirmation-icon", pass.synced ? "🟢" : "🟡"),
+      element("span", "", pass.synced ? `உறுதி செய்யப்பட்டது · CONFIRMED · ${pass.token}` : "இணைப்பு நிலுவையில் · OFFLINE PASS"),
+    );
+    ticket.append(confirmation);
+
+    if (latest) {
+      ticket.append(element("h3", "pass-hero-heading", "🎫 உங்கள் வருகைச் சீட்டு · YOUR VISIT PASS"));
+      const tokenPanel = element("div", "token-answer");
+      tokenPanel.append(
+        element("span", "answer-label", "உங்கள் டோக்கன் எண் · YOUR TOKEN"),
+        element("strong", "pass-token", pass.token || "—"),
+        element("span", "answer-detail", `${pass.name || "Patient"} · ${pass.phc_name || "Primary Health Centre"}`),
+        element("span", "answer-detail", `சேவை · Service: ${pass.service || "General consultation"}`),
+      );
+      ticket.append(tokenPanel);
+
+      const arrivalPanel = element("div", "arrival-answer");
+      arrivalPanel.append(
+        element("span", "answer-label", "🕐 நீங்கள் வர வேண்டிய நேரம் · YOUR VISIT TIME"),
+        element("strong", "arrival-time-answer", pass.recommended_arrival_window || "PHC staff-ஐக் கேளுங்கள் · Ask PHC staff"),
+        element(
+          "span",
+          "answer-detail",
+          pass.estimated_wait_minutes == null
+            ? "⏱ காத்திருப்பு நேரம் கிடைக்கவில்லை · Estimated wait unavailable"
+            : `⏱ மதிப்பிடப்பட்ட காத்திருப்பு · Estimated wait: ${pass.estimated_wait_minutes} ${pass.estimated_wait_minutes === 1 ? "minute" : "minutes"}`,
+        ),
+      );
+      ticket.append(arrivalPanel);
+
+      const instruction = element("div", "wait-instruction");
+      if (pass.recommended_arrival_window) {
+        instruction.append(
+          element("strong", "", `தயவுசெய்து ${pass.recommended_arrival_window} மணியளவில் PHC-க்கு வாருங்கள்.`),
+          element("span", "", "இப்போது PHC-ல் காத்திருக்க வேண்டிய அவசியமில்லை."),
+          element("span", "wait-instruction-en", `Please visit the PHC around ${pass.recommended_arrival_window}. You do not need to wait at the PHC right now.`),
+        );
+      } else {
+        instruction.append(
+          element("strong", "", "வருகை நேரத்தை PHC பணியாளரிடம் உறுதிப்படுத்தவும்."),
+          element("span", "", "இணைப்பு மற்றும் வரிசை விவரம் கிடைத்ததும் நேரம் புதுப்பிக்கப்படும்."),
+          element("span", "wait-instruction-en", "Please confirm your arrival time with PHC staff. This local pass is not yet in the PHC queue."),
+        );
+      }
+      ticket.append(instruction);
+
+      if (!pass.synced) {
+        const offlineNote = element("p", "offline-pass-note");
+        offlineNote.append(
+          element("strong", "", "உங்கள் சீட்டு இந்தத் தொலைபேசியில் சேமிக்கப்பட்டுள்ளது."),
+          element("span", "", "இணையம் திரும்பியதும் சேவையகத்துடன் தானாக ஒத்திசைக்கப்படும்."),
+          element("span", "wait-instruction-en", "Your pass is saved on this phone. It will sync automatically when internet returns."),
+        );
+        ticket.append(offlineNote);
+        if (pass.sync_error) {
+          ticket.append(element("p", "pass-sync-error", `இன்னும் ஒத்திசைக்கப்படவில்லை · Not synced yet: ${pass.sync_error}`));
+        }
+      }
+    } else {
+      ticket.append(element("p", "pass-name", pass.name || "Patient"));
+      ticket.append(element("p", "pass-detail", `${pass.phc_name || "Primary Health Centre"} · ${pass.service || "General consultation"}`));
+      ticket.append(element("p", "pass-detail", pass.recommended_arrival_window || "Ask PHC staff for your arrival time"));
+    }
+
+    const actions = element("div", "pass-actions pass-actions-prominent");
+    if (latest) {
+      const hear = element("button", "button button-secondary", "🔊 கேட்டு அறிய / Hear");
+      hear.type = "button";
+      hear.addEventListener("click", () => hearPass(pass));
+      actions.append(hear);
+
+      const myPass = element("button", "button button-outline", "🎫 எனது சீட்டு / My Visit Pass");
+      myPass.type = "button";
+      myPass.addEventListener("click", () => showPass(pass));
+      actions.append(myPass);
+
+      const refresh = element("button", "button button-primary", "🔄 நிலையைப் புதுப்பிக்கவும் / Refresh Status");
+      refresh.type = "button";
+      refresh.addEventListener("click", async () => {
+        if (navigator.onLine) await syncPending();
+        await refreshQueue();
+        const currentPass = passes.find((item) => item.visit_pass_id === pass.visit_pass_id) || pass;
+        setMessage(
+          "booking-message",
+          currentPass.synced
+            ? "வரிசை நிலை புதுப்பிக்கப்பட்டது · Queue status refreshed."
+            : "உங்கள் சீட்டு இந்தத் தொலைபேசியில் பாதுகாப்பாக உள்ளது · Your pass remains saved on this phone.",
+        );
+      });
+      actions.append(refresh);
+    } else {
+      const open = element("button", "button button-outline", "🎫 சீட்டைப் பார்க்கவும் · Open pass");
+      open.type = "button";
+      open.addEventListener("click", () => showPass(pass));
+      actions.append(open);
+    }
+    ticket.append(actions);
+    return ticket;
+  }
+
   function renderPasses() {
     const container = $("saved-pass");
     const syncBadge = $("pass-sync");
     container.replaceChildren();
     if (!passes.length) {
       container.className = "empty-state";
-      container.textContent = "Create a pass while online or offline. Your saved pass will appear here.";
+      container.textContent = "வருகைச் சீட்டை உருவாக்கவும் · Create a Visit Pass to see your token and arrival time here.";
       syncBadge.textContent = "No pass saved";
       syncBadge.className = "badge badge-muted";
       return;
     }
     container.className = "";
     const latest = activePass();
-    syncBadge.textContent = passes.some((pass) => !pass.synced) ? "Waiting to sync" : "Saved on this phone";
-    syncBadge.className = `badge ${passes.some((pass) => !pass.synced) ? "moderate" : ""}`;
-    passes.forEach((pass) => {
-      const ticket = element("article", "pass-ticket");
-      ticket.dataset.passId = pass.visit_pass_id;
-      const top = element("div", "pass-top");
-      const token = element("div", "pass-token", pass.token || "Visit Pass");
-      top.append(token, statusBadge(pass.queue_status));
-      ticket.append(top);
-      ticket.append(element("p", "pass-name", pass.name || "Patient"));
-      ticket.append(element("p", "pass-detail", `${pass.phc_name || "Primary Health Centre"} · ${pass.service || "General consultation"}`));
-      ticket.append(element("p", "pass-detail", `Age: ${pass.age || "—"}${pass.phone ? ` · Phone: ${pass.phone}` : ""}`));
-      ticket.append(element("p", "pass-arrival", `Estimated wait: ${pass.estimated_wait_minutes ?? "—"} min · Arrive: ${pass.recommended_arrival_window || "—"}`));
-      ticket.append(element("p", "pass-detail", pass.synced ? "Synced with PHC" : "Stored offline · Will sync when connected"));
-      const actions = element("div", "pass-actions");
-      const refresh = element("button", "button button-outline", "Open saved pass");
-      refresh.type = "button";
-      refresh.addEventListener("click", () => showPass(pass));
-      actions.append(refresh);
-      if (pass.visit_pass_id === latest.visit_pass_id) {
-        const current = element("span", "badge badge-muted", "Latest");
-        actions.append(current);
-      }
-      ticket.append(actions);
-      container.append(ticket);
-    });
+    syncBadge.textContent = latest.synced ? "🟢 CONFIRMED" : "🟡 OFFLINE PASS";
+    syncBadge.className = `badge ${latest.synced ? "" : "moderate"}`;
+    passes.forEach((pass, index) => container.append(renderPassTicket(pass, index === 0)));
   }
 
-  function locallyPredict() {
+  function locallyPredict(serverUnavailable = false) {
     const queue = readStorage(QUEUE_KEY, null);
-    if (queue) renderQueue(queue, true);
+    if (queue) renderQueue(queue, serverUnavailable ? "server" : "offline");
     else {
       $("queue-current").textContent = "—";
-      $("queue-count").textContent = "Queue information is unavailable offline. You can still create a Visit Pass.";
+      $("queue-count").textContent = serverUnavailable
+        ? "வரிசை கிடைக்கவில்லை · CURRENT QUEUE unavailable. Pass-ஐ இந்தத் தொலைபேசியில் சேமிக்கலாம்."
+        : "இணையமின்றி வரிசை விவரம் இல்லை · CURRENT QUEUE unavailable offline.";
       $("queue-wait").textContent = "— min";
       $("arrival-window").textContent = "Ask PHC staff";
+      $("queue-note").textContent = serverUnavailable
+        ? "This pass will remain on this phone until the server database is configured and reachable."
+        : "Connect to the PHC server for a live queue estimate.";
     }
   }
 
-  function renderQueue(data, cached = false) {
+  function renderQueue(data, staleReason = "") {
     $("queue-current").textContent = data.current_token || data.current || "—";
     const count = data.waiting_patients ?? data.ahead ?? 0;
-    $("queue-count").textContent = `${count} waiting patient${count === 1 ? "" : "s"}${cached ? " · last saved update" : ""}`;
+    $("queue-count").textContent = `தற்போதைய வரிசை · CURRENT QUEUE: ${count} ${count === 1 ? "patient" : "patients"}${staleReason ? " · last saved update" : ""}`;
     $("queue-wait").textContent = `${data.estimated_wait_minutes ?? data.estimated_minutes ?? 0} min`;
     $("arrival-window").textContent = data.recommended_arrival_window || "—";
     const badge = statusBadge(data.queue_status);
     $("queue-level").replaceWith(badge);
     badge.id = "queue-level";
-    $("queue-note").textContent = cached
-      ? "Offline: showing the last saved queue estimate. Create or open your Visit Pass anytime."
-      : `Based on ${data.doctors_available} doctor(s), historical time/day patterns and the current queue.`;
+    $("queue-note").textContent = staleReason === "server"
+      ? "PHC server is unavailable: showing the last saved estimate. A local Visit Pass is not yet in the PHC queue."
+      : staleReason === "offline"
+        ? "Offline: showing the last saved queue estimate. Create or open your Visit Pass anytime."
+        : `Based on ${data.doctors_available} doctor(s), historical time/day patterns and the current queue.`;
   }
 
   async function refreshQueue() {
@@ -182,7 +308,7 @@
       localStorage.setItem(QUEUE_KEY, JSON.stringify(data));
       renderQueue(data);
     } catch {
-      locallyPredict();
+      locallyPredict(true);
     }
   }
 
@@ -197,23 +323,27 @@
     };
   }
 
-  function saveOfflinePass(data) {
+  function saveOfflinePass(data, syncError = null) {
     const cachedQueue = readStorage(QUEUE_KEY, {});
     const queueCount = cachedQueue.waiting_patients || 0;
-    const estimate = cachedQueue.estimated_wait_minutes ?? Math.ceil(queueCount * 9);
+    const estimate = cachedQueue.estimated_wait_minutes
+      ?? (Object.keys(cachedQueue).length ? Math.ceil(queueCount * 9) : null);
     const now = new Date();
-    const start = new Date(now.getTime() + Math.max(0, estimate - 10) * 60000);
-    const end = new Date(now.getTime() + Math.max(10, estimate + 5) * 60000);
+    const start = estimate === null ? null : new Date(now.getTime() + Math.max(0, estimate - 10) * 60000);
+    const end = estimate === null ? null : new Date(now.getTime() + Math.max(10, estimate + 5) * 60000);
     const phcOption = PHC_SELECT.options[PHC_SELECT.selectedIndex];
     const pass = {
       ...data,
       token: `OFF-${String(passes.filter((saved) => saved.token && saved.token.startsWith("OFF-")).length + 1).padStart(3, "0")}`,
       phc_name: phcOption.textContent.split(" · ")[0],
       estimated_wait_minutes: estimate,
-      queue_status: estimate <= 20 ? "LOW" : estimate <= 60 ? "MODERATE" : "HIGH",
-      recommended_arrival_window: `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}–${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+      queue_status: estimate === null ? "UNKNOWN" : estimate <= 20 ? "LOW" : estimate <= 60 ? "MODERATE" : "HIGH",
+      recommended_arrival_window: estimate === null
+        ? "Ask PHC staff"
+        : `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}–${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
       created_at: now.toISOString(),
       synced: false,
+      sync_error: syncError,
     };
     passes.unshift(pass);
     savePasses();
@@ -232,8 +362,12 @@
         pass = await fetchJson("/api/token", requestOptions("POST", data));
         pass.synced = true;
       } catch (error) {
-        if (!navigator.onLine || /Failed to fetch|NetworkError/i.test(error.message)) {
-          pass = saveOfflinePass(data);
+        if (!navigator.onLine || error.status >= 500 || /Failed to fetch|NetworkError/i.test(error.message)) {
+          pass = saveOfflinePass(data, error.message);
+          const explanation = error.status === 503 && error.message.includes("DATABASE_URL")
+            ? "The server has no database configured. "
+            : "The server could not save your pass. ";
+          setMessage("booking-message", `${explanation}Visit Pass saved on this phone and pending sync; it is not yet in the PHC queue.`);
         } else {
           setMessage("booking-message", error.message, true);
           return;
@@ -247,7 +381,8 @@
       savePasses();
     }
     showPass(pass);
-    setMessage("booking-message", pass.synced ? "Visit Pass created and saved on this phone." : "No connection. Visit Pass saved offline and queued to sync.");
+    if (pass.synced) setMessage("booking-message", "Visit Pass created and saved on this phone.");
+    else if (!message.textContent) setMessage("booking-message", "No connection. Visit Pass saved on this phone and pending sync; it is not yet in the PHC queue.");
     refreshQueue();
     refreshStaff();
   });
@@ -258,13 +393,23 @@
     if (!pending.length) return;
     try {
       const response = await fetch("/api/sync", requestOptions("POST", { items: pending }));
-      setNetworkStatus(true);
       const body = await response.json();
+      if (!response.ok) {
+        if (response.status >= 500) setServerUnavailable();
+        throw new Error(body.error || `Sync failed (${response.status}).`);
+      }
+      setNetworkStatus(true);
       const syncedIds = new Set((body.synced || []).map((pass) => pass.visit_pass_id));
       passes = passes.map((pass) => {
         const synced = (body.synced || []).find((item) => item.visit_pass_id === pass.visit_pass_id);
-        return synced ? { ...pass, ...synced, synced: true } : pass;
+        return synced ? { ...pass, ...synced, synced: true, sync_error: null } : pass;
       });
+      const failures = new Map((body.failures || []).map((failure) => [failure.visit_pass_id, failure.error]));
+      passes = passes.map((pass) =>
+        !pass.synced && failures.has(pass.visit_pass_id)
+          ? { ...pass, sync_error: failures.get(pass.visit_pass_id) }
+          : pass
+      );
       savePasses();
       if (syncedIds.size) {
         setMessage("booking-message", `${syncedIds.size} offline Visit Pass${syncedIds.size === 1 ? "" : "es"} synced with the PHC.`);
@@ -274,8 +419,14 @@
       if (body.failures && body.failures.length) {
         setMessage("booking-message", `Some passes are still waiting to sync: ${body.failures[0].error}`, true);
       }
-    } catch {
-      setNetworkStatus(false);
+    } catch (error) {
+      if (!navigator.onLine) setNetworkStatus(false);
+      else if (!error.status || error.status >= 500) setServerUnavailable();
+      passes = passes.map((pass) => pass.synced ? pass : { ...pass, sync_error: error.message });
+      savePasses();
+      if (error.message) {
+        setMessage("booking-message", `Visit Pass remains saved on this phone but is not synced: ${error.message}`, true);
+      }
     }
   }
 

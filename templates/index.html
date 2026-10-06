@@ -26,7 +26,7 @@
 
   <main class="page">
     <section class="phc-bar card">
-      <label for="phc-select">Choose PHC <span lang="ta">மருத்துவமனை</span></label>
+      <label for="phc-select">PHC-ஐத் தேர்ந்தெடுக்கவும் · Choose PHC</label>
       <select id="phc-select" class="control">
         {% for phc in phcs %}
         <option value="{{ phc.id }}">{{ phc.name }} · {{ phc.district }}</option>
@@ -35,9 +35,9 @@
     </section>
 
     <nav class="tabs" aria-label="Dashboard">
-      <button class="tab active" data-panel="patient-panel">Patient <span lang="ta">நோயாளி</span></button>
-      <button class="tab" data-panel="staff-panel">Staff <span lang="ta">பணியாளர்</span></button>
-      <button class="tab" data-panel="admin-panel">Admin <span lang="ta">நிர்வாகம்</span></button>
+      <button class="tab active" data-panel="patient-panel">நோயாளி · Patient</button>
+      <button class="tab" data-panel="staff-panel">பணியாளர் · Staff</button>
+      <button class="tab" data-panel="admin-panel">நிர்வாகம் · Admin</button>
     </nav>
 
     <section id="patient-panel" class="panel active">
@@ -45,45 +45,46 @@
         <section class="card queue-card" aria-labelledby="queue-heading">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">LIVE QUEUE</p>
-              <h2 id="queue-heading">Plan your visit</h2>
+              <p class="eyebrow">நேரடி வரிசை · LIVE QUEUE</p>
+              <h2 id="queue-heading">உங்கள் வருகையைத் திட்டமிடுங்கள் · Plan your visit</h2>
             </div>
-            <button id="refresh-queue" class="button button-outline button-small">Refresh</button>
+            <button id="refresh-queue" class="button button-outline button-small">🔄 நிலையைப் புதுப்பிக்கவும் · Refresh</button>
           </div>
+          <span class="answer-label queue-token-label">தற்போதைய டோக்கன் · CURRENT TOKEN</span>
           <div class="queue-number" id="queue-current">—</div>
-          <p id="queue-count" class="muted">Loading queue…</p>
+          <p id="queue-count" class="queue-count" aria-live="polite">வரிசையில் நோயாளிகள் · Patients in queue: Loading…</p>
           <div class="wait-panel">
-            <div><span class="metric-label">Estimated wait</span><strong id="queue-wait">— min</strong></div>
+            <div><span class="metric-label">மதிப்பிடப்பட்ட காத்திருப்பு · Estimated wait</span><strong id="queue-wait">— min</strong></div>
             <span id="queue-level" class="badge">—</span>
           </div>
-          <p class="arrival"><span>Recommended arrival</span><strong id="arrival-window">—</strong></p>
+          <p class="arrival"><span>பரிந்துரைக்கப்பட்ட வருகை நேரம் · Recommended arrival</span><strong id="arrival-window">—</strong></p>
           <p id="queue-note" class="muted small">Prediction uses current queue and historical time/day patterns.</p>
         </section>
 
         <section class="card" aria-labelledby="booking-heading">
-          <p class="eyebrow">YOUR VISIT</p>
-          <h2 id="booking-heading">Get a Visit Pass</h2>
-          <p class="muted">Your pass is saved on this phone and works without internet.</p>
+          <p class="eyebrow">உங்கள் வருகை</p>
+          <h2 id="booking-heading">வருகைச் சீட்டைப் பெறுங்கள் · Get a Visit Pass</h2>
+          <p class="muted">உங்கள் சீட்டு இந்தத் தொலைபேசியில் சேமிக்கப்படும் · Your pass is saved on this phone and works without internet.</p>
           <form id="booking-form">
-            <label for="patient-name">Patient name <span lang="ta">பெயர்</span></label>
+            <label for="patient-name">பெயர் · Patient name</label>
             <input class="control" id="patient-name" name="name" maxlength="80" autocomplete="name" required>
             <div class="form-row">
               <div>
-                <label for="patient-age">Age <span lang="ta">வயது</span></label>
+                <label for="patient-age">வயது · Age</label>
                 <input class="control" id="patient-age" name="age" type="number" min="0" max="120" inputmode="numeric">
               </div>
               <div>
-                <label for="patient-phone">Phone (optional)</label>
+                <label for="patient-phone">தொலைபேசி (விருப்பம்) · Phone (optional)</label>
                 <input class="control" id="patient-phone" name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel">
               </div>
             </div>
-            <label for="patient-service">Service <span lang="ta">சேவை</span></label>
+            <label for="patient-service">சேவை · Service</label>
             <select class="control" id="patient-service" name="service">
               {% for service in services %}
               <option>{{ service }}</option>
               {% endfor %}
             </select>
-            <button class="button button-primary button-wide" type="submit">Create Visit Pass <span lang="ta">வருகைச் சீட்டு</span></button>
+            <button class="button button-primary button-wide" type="submit">வருகைச் சீட்டை உருவாக்கவும் · Create Visit Pass</button>
             <p id="booking-message" class="form-message" role="status"></p>
           </form>
         </section>
@@ -92,12 +93,12 @@
       <section class="card pass-card">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">SAVED ON THIS PHONE</p>
-            <h2>Your Visit Pass</h2>
+            <p class="eyebrow">உங்கள் வருகைச் சீட்டு · YOUR VISIT PASS</p>
+            <h2>வருகை உறுதிப்படுத்தல் · Visit confirmation</h2>
           </div>
           <span id="pass-sync" class="badge badge-muted">No pass saved</span>
         </div>
-        <div id="saved-pass" class="empty-state">Create a pass while online or offline. Your saved pass will appear here.</div>
+        <div id="saved-pass" class="empty-state" aria-live="polite">வருகைச் சீட்டை உருவாக்கவும் · Create a Visit Pass to see your token and arrival time here.</div>
       </section>
 
       <section class="card">

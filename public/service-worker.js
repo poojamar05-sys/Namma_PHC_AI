@@ -1,4 +1,4 @@
-const CACHE_NAME = "namma-phc-ai-v5";
+const CACHE_NAME = "namma-phc-ai-v10";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/static/app.css", "/static/app.js", "/static/icon.svg"];
 
 self.addEventListener("install", (event) => {

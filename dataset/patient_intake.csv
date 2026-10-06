@@ -1,0 +1,61 @@
+patient_id,age,service,symptoms,priority,synthetic_demo_data
+DEMO-001,31,Blood pressure check,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-002,79,Medicine refill,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-003,37,Diabetes follow-up,Routine diabetes check,routine,SYNTHETIC DEMO DATA
+DEMO-004,15,Fever / cold,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-005,17,Medicine refill,Follow-up for blood pressure,routine,SYNTHETIC DEMO DATA
+DEMO-006,16,Blood pressure check,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-007,48,Medicine refill,Cough and sore throat,routine,SYNTHETIC DEMO DATA
+DEMO-008,2,Medicine refill,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-009,71,Maternal and child health,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-010,71,General consultation,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-011,7,General consultation,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-012,60,General consultation,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-013,8,Blood pressure check,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-014,8,Maternal and child health,Cough and sore throat,routine,SYNTHETIC DEMO DATA
+DEMO-015,66,Fever / cold,Routine diabetes check,priority,SYNTHETIC DEMO DATA
+DEMO-016,18,Diabetes follow-up,Routine diabetes check,priority,SYNTHETIC DEMO DATA
+DEMO-017,82,Diabetes follow-up,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-018,6,Fever / cold,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-019,58,Medicine refill,Fever since yesterday,priority,SYNTHETIC DEMO DATA
+DEMO-020,46,Blood pressure check,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-021,61,Fever / cold,Follow-up for blood pressure,routine,SYNTHETIC DEMO DATA
+DEMO-022,53,Fever / cold,Fever since yesterday,priority,SYNTHETIC DEMO DATA
+DEMO-023,8,General consultation,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-024,44,Medicine refill,Fever since yesterday,priority,SYNTHETIC DEMO DATA
+DEMO-025,8,Medicine refill,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-026,36,Blood pressure check,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-027,39,General consultation,Follow-up for blood pressure,routine,SYNTHETIC DEMO DATA
+DEMO-028,9,Maternal and child health,Follow-up for blood pressure,routine,SYNTHETIC DEMO DATA
+DEMO-029,66,Blood pressure check,Cough and sore throat,priority,SYNTHETIC DEMO DATA
+DEMO-030,48,Medicine refill,Routine diabetes check,routine,SYNTHETIC DEMO DATA
+DEMO-031,39,Diabetes follow-up,Cough and sore throat,routine,SYNTHETIC DEMO DATA
+DEMO-032,6,Maternal and child health,Follow-up for blood pressure,routine,SYNTHETIC DEMO DATA
+DEMO-033,33,General consultation,Fever since yesterday,priority,SYNTHETIC DEMO DATA
+DEMO-034,20,Blood pressure check,Cough and sore throat,priority,SYNTHETIC DEMO DATA
+DEMO-035,81,Medicine refill,Follow-up for blood pressure,routine,SYNTHETIC DEMO DATA
+DEMO-036,81,General consultation,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-037,14,Blood pressure check,Routine diabetes check,priority,SYNTHETIC DEMO DATA
+DEMO-038,60,Diabetes follow-up,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-039,38,Maternal and child health,Cough and sore throat,routine,SYNTHETIC DEMO DATA
+DEMO-040,78,Blood pressure check,Fever since yesterday,priority,SYNTHETIC DEMO DATA
+DEMO-041,11,Maternal and child health,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-042,28,Diabetes follow-up,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-043,53,Fever / cold,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-044,63,Fever / cold,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-045,34,Medicine refill,Child has mild cold symptoms,priority,SYNTHETIC DEMO DATA
+DEMO-046,10,Diabetes follow-up,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-047,29,Diabetes follow-up,Routine diabetes check,priority,SYNTHETIC DEMO DATA
+DEMO-048,9,Fever / cold,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-049,5,Fever / cold,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-050,24,Medicine refill,Follow-up for blood pressure,priority,SYNTHETIC DEMO DATA
+DEMO-051,23,General consultation,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-052,40,Diabetes follow-up,Fever since yesterday,priority,SYNTHETIC DEMO DATA
+DEMO-053,36,Maternal and child health,Child has mild cold symptoms,routine,SYNTHETIC DEMO DATA
+DEMO-054,42,Diabetes follow-up,Child has mild cold symptoms,priority,SYNTHETIC DEMO DATA
+DEMO-055,56,Blood pressure check,Cough and sore throat,routine,SYNTHETIC DEMO DATA
+DEMO-056,15,Diabetes follow-up,Fever since yesterday,routine,SYNTHETIC DEMO DATA
+DEMO-057,65,Diabetes follow-up,Routine diabetes check,routine,SYNTHETIC DEMO DATA
+DEMO-058,72,Diabetes follow-up,Needs regular medicine refill,routine,SYNTHETIC DEMO DATA
+DEMO-059,14,Diabetes follow-up,Needs regular medicine refill,priority,SYNTHETIC DEMO DATA
+DEMO-060,37,Diabetes follow-up,Fever since yesterday,priority,SYNTHETIC DEMO DATA

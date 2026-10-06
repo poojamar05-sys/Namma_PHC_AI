@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#086b5c">
+  <meta name="description" content="Check your PHC queue, plan your arrival and keep your Visit Pass on your phone.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <title>NAMMA PHC AI — Arrive at the right time</title>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <div>
+        <p class="eyebrow">TAMIL NADU · PRIMARY HEALTH CENTRE</p>
+        <h1>NAMMA PHC AI</h1>
+        <p class="tagline">Don’t wait at the PHC. Arrive at the right time.</p>
+      </div>
+      <div class="status-wrap">
+        <span id="connection-status" class="connection offline" role="status">Checking…</span>
+        <span id="pending-status" class="pending-status"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="phc-bar card">
+      <label for="phc-select">Choose PHC <span lang="ta">மருத்துவமனை</span></label>
+      <select id="phc-select" class="control">
+        {% for phc in phcs %}
+        <option value="{{ phc.id }}">{{ phc.name }} · {{ phc.district }}</option>
+        {% endfor %}
+      </select>
+    </section>
+
+    <nav class="tabs" aria-label="Dashboard">
+      <button class="tab active" data-panel="patient-panel">Patient <span lang="ta">நோயாளி</span></button>
+      <button class="tab" data-panel="staff-panel">Staff <span lang="ta">பணியாளர்</span></button>
+      <button class="tab" data-panel="admin-panel">Admin <span lang="ta">நிர்வாகம்</span></button>
+    </nav>
+
+    <section id="patient-panel" class="panel active">
+      <div class="patient-layout">
+        <section class="card queue-card" aria-labelledby="queue-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">LIVE QUEUE</p>
+              <h2 id="queue-heading">Plan your visit</h2>
+            </div>
+            <button id="refresh-queue" class="button button-outline button-small">Refresh</button>
+          </div>
+          <div class="queue-number" id="queue-current">—</div>
+          <p id="queue-count" class="muted">Loading queue…</p>
+          <div class="wait-panel">
+            <div><span class="metric-label">Estimated wait</span><strong id="queue-wait">— min</strong></div>
+            <span id="queue-level" class="badge">—</span>
+          </div>
+          <p class="arrival"><span>Recommended arrival</span><strong id="arrival-window">—</strong></p>
+          <p id="queue-note" class="muted small">Prediction uses current queue and historical time/day patterns.</p>
+        </section>
+
+        <section class="card" aria-labelledby="booking-heading">
+          <p class="eyebrow">YOUR VISIT</p>
+          <h2 id="booking-heading">Get a Visit Pass</h2>
+          <p class="muted">Your pass is saved on this phone and works without internet.</p>
+          <form id="booking-form">
+            <label for="patient-name">Patient name <span lang="ta">பெயர்</span></label>
+            <input class="control" id="patient-name" name="name" maxlength="80" autocomplete="name" required>
+            <div class="form-row">
+              <div>
+                <label for="patient-age">Age <span lang="ta">வயது</span></label>
+                <input class="control" id="patient-age" name="age" type="number" min="0" max="120" inputmode="numeric">
+              </div>
+              <div>
+                <label for="patient-phone">Phone (optional)</label>
+                <input class="control" id="patient-phone" name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel">
+              </div>
+            </div>
+            <label for="patient-service">Service <span lang="ta">சேவை</span></label>
+            <select class="control" id="patient-service" name="service">
+              {% for service in services %}
+              <option>{{ service }}</option>
+              {% endfor %}
+            </select>
+            <button class="button button-primary button-wide" type="submit">Create Visit Pass <span lang="ta">வருகைச் சீட்டு</span></button>
+            <p id="booking-message" class="form-message" role="status"></p>
+          </form>
+        </section>
+      </div>
+
+      <section class="card pass-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SAVED ON THIS PHONE</p>
+            <h2>Your Visit Pass</h2>
+          </div>
+          <span id="pass-sync" class="badge badge-muted">No pass saved</span>
+        </div>
+        <div id="saved-pass" class="empty-state">Create a pass while online or offline. Your saved pass will appear here.</div>
+      </section>
+
+      <section class="card">
+        <p class="eyebrow">PRE-CONSULTATION</p>
+        <h2>Tell us how you feel <span lang="ta">அறிகுறிகள்</span></h2>
+        <p class="muted">The summary helps PHC staff prepare. It does not diagnose or replace a clinician.</p>
+        <p class="muted small">When online, only the symptom text is sent to Groq to prepare this summary. Do not include your name or phone number here.</p>
+        <label for="symptom-input">Describe symptoms in your own words</label>
+        <textarea class="control symptom-input" id="symptom-input" maxlength="2000" placeholder="For example: fever since yesterday and a sore throat"></textarea>
+        <button id="summarize-button" class="button button-secondary">Prepare intake summary</button>
+        <div class="disclaimer">AI assistance only. Not a medical diagnosis.</div>
+        <div id="symptom-result" class="summary-box hidden" aria-live="polite"></div>
+        <p class="emergency-note"><strong>Seek urgent in-person care now</strong> for chest pain, severe breathing difficulty, unconsciousness or severe bleeding. Do not wait for an online response.</p>
+      </section>
+    </section>
+
+    <section id="staff-panel" class="panel">
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">STAFF QUEUE</p>
+            <h2>Today at this PHC</h2>
+          </div>
+          <button id="staff-refresh" class="button button-outline button-small">Refresh</button>
+        </div>
+        <div class="staff-metrics">
+          <div class="metric-tile"><span>Current token</span><strong id="staff-current">—</strong></div>
+          <div class="metric-tile"><span>Waiting patients</span><strong id="staff-waiting">—</strong></div>
+          <div class="metric-tile"><span>Estimated wait</span><strong id="staff-estimate">—</strong></div>
+        </div>
+        <button id="call-next" class="button button-primary button-wide">CALL NEXT <span lang="ta">அடுத்தவர்</span></button>
+        <p id="staff-message" class="form-message" role="status"></p>
+        <h3>Patient Visit Passes</h3>
+        <div id="staff-patients" class="list-stack empty-state">Queue will load when connected.</div>
+      </section>
+      <section class="card">
+        <p class="eyebrow">LATEST INTAKE</p>
+        <h2>AI pre-consultation summary</h2>
+        <div id="staff-intake" class="empty-state">No intake summary has been submitted yet.</div>
+        <p class="disclaimer">AI assistance only. Not a medical diagnosis.</p>
+      </section>
+    </section>
+
+    <section id="admin-panel" class="panel">
+      <section class="card">
+        <div class="section-heading">
+          <div><p class="eyebrow">PHC OVERVIEW</p><h2>Today’s operations</h2></div>
+          <button id="admin-refresh" class="button button-outline button-small">Refresh</button>
+        </div>
+        <div class="staff-metrics admin-metrics">
+          <div class="metric-tile"><span>Today’s patients</span><strong id="admin-patients">—</strong></div>
+          <div class="metric-tile"><span>Average waiting</span><strong id="admin-wait">—</strong></div>
+          <div class="metric-tile"><span>Average consultation</span><strong id="admin-consult">—</strong></div>
+          <div class="metric-tile"><span>Priority cases</span><strong id="admin-priority">—</strong></div>
+        </div>
+        <div class="admin-grid">
+          <div><h3>Busiest hours</h3><div id="busy-hours" class="list-stack empty-state">Loading…</div></div>
+          <div><h3>Queue trend · last 7 days</h3><div id="queue-trend" class="trend-chart" aria-label="Average wait times"></div></div>
+        </div>
+        <p class="synthetic-label">Dataset analytics: SYNTHETIC DEMO DATA</p>
+        <h3>Priority cases</h3>
+        <div id="priority-list" class="list-stack empty-state">No priority cases recorded.</div>
+      </section>
+    </section>
+  </main>
+  <footer class="footer">NAMMA PHC AI · Demo prototype · For care, always consult a qualified health worker.</footer>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>
